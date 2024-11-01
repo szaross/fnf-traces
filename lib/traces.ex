@@ -1,41 +1,90 @@
 defmodule Traces do
   @moduledoc """
-  Documentation for `Traces`.
-  """
-
-  @doc """
-  Hello world.
-
+  A module containing FNF functionality.
   ## Examples
 
-      iex> Traces.hello()
-      :world
-
+      iex(82)> expressions = Parser.parse_expressions()
+      %{
+        c: %{reads: ["x", "z"], writes: ["x"]},
+        a: %{reads: ["x"], writes: ["x"]},
+        f: %{reads: ["x", "v"], writes: ["v"]},
+        d: %{reads: ["w", "v"], writes: ["w"]},
+        e: %{reads: ["y", "z"], writes: ["z"]},
+        b: %{reads: ["y", "z"], writes: ["y"]}
+      }
+      iex(83)> word = Parser.parse_word()
+      [:b0, :a1, :a2, :d3, :c4, :b5]
+      iex(84)> words.build_d(expressions)
+      [
+        [:c, :c],
+        [:c, :a],
+        [:c, :f],
+        [:c, :e],
+        [:a, :c],
+        [:a, :a],
+        [:a, :f],
+        [:f, :c],
+        [:f, :a],
+        [:f, :f],
+        [:f, :d],
+        [:d, :f],
+        [:d, :d],
+        [:e, :c],
+        [:e, :e],
+        [:e, :b],
+        [:b, :e],
+        [:b, :b]
+      ]
+      iex(85)> words.build_i(expressions)
+      [
+        [:c, :d],
+        [:c, :b],
+        [:a, :d],
+        [:a, :e],
+        [:a, :b],
+        [:f, :e],
+        [:f, :b],
+        [:d, :c],
+        [:d, :a],
+        [:d, :e],
+        [:d, :b],
+        [:e, :a],
+        [:e, :f],
+        [:e, :d],
+        [:b, :c],
+        [:b, :a],
+        [:b, :f],
+        [:b, :d]
+      ]
+      iex(86)> words.build_fnf(expressions, word)
+      [["c"], ["b", "a"], ["b", "a"]]
   """
-  def hello do
-    graph = Graph.new(type: :directed) |> Graph.add_edges([
-      {:a,:b}, {:b,:c}
-    ])
-    Graph.get_shortest_path(graph, :b, :a)
-  end
-
-  def build_d(transactions) do
-      for x <- Map.keys(transactions), y <- Map.keys(transactions) do
-        if Enum.member?(transactions[x].reads,transactions[y].writes |> List.first()) or Enum.member?(transactions[y].reads,transactions[x].writes |> List.first()) do
+@doc """
+  Build a D set for a set of expressions.
+"""
+  def build_d(expressions) do
+      for x <- Map.keys(expressions), y <- Map.keys(expressions) do
+        if Enum.member?(expressions[x].reads,expressions[y].writes |> List.first()) or Enum.member?(expressions[y].reads,expressions[x].writes |> List.first()) do
           [x,y]
         end
       end |> Enum.filter(fn a -> a != nil end)
     end
 
-  def build_i(transactions) do
-    all_pairs =  for x <- Map.keys(transactions), y <- Map.keys(transactions) do [x,y] end
-    all_pairs -- build_d(transactions)
+@doc """
+  Build an I set for a set of expressions.
+"""
+  def build_i(expressions) do
+    all_pairs =  for x <- Map.keys(expressions), y <- Map.keys(expressions) do [x,y] end
+    all_pairs -- build_d(expressions)
   end
 
-  def build_fnf(transactions, trace) do
-      transactions
+  @doc """
+  Build FNF for a set of expressions and a word.
+  """
+  def build_fnf(expressions, word) do
+      expressions
       |> build_d()
-      |> build_graph_d(trace)
+      |> build_graph_d(word)
       |> get_foata_classes()
   end
 
@@ -63,18 +112,22 @@ defmodule Traces do
     get_foata_classes(graph, [])
   end
 
-  def build_graph(transactions, trace) do
-      transactions
+@doc """
+Build a graph for a set of expressions and a word.
+Needed to save it to a file.
+"""
+  def build_graph(expressions, word) do
+      expressions
       |> build_d()
-      |> build_graph_d(trace)
+      |> build_graph_d(word)
   end
 
-  defp build_graph_d(d, trace) do
+  defp build_graph_d(d, word) do
     initial_graph = Graph.new(type: :directed)
-    # go through the trace backwards
-    Enum.reduce(Enum.with_index(trace) |> Enum.reverse(), initial_graph, fn {action, index}, graph_acc ->
+    # go through the word backwards
+    Enum.reduce(Enum.with_index(word) |> Enum.reverse(), initial_graph, fn {action, index}, graph_acc ->
       # loop through right hand side of current action
-      Enum.reduce(Enum.slice(trace, index + 1..-1) , graph_acc, fn other_action, acc_graph ->
+      Enum.reduce(Enum.slice(word, index + 1..-1) , graph_acc, fn other_action, acc_graph ->
         reachable = Graph.reachable(acc_graph, [action])
         # we need to strip vertices from indices to check if two actions are dependent
         action_atom = Parser.strip_index(action) |> String.to_atom()
@@ -90,10 +143,13 @@ defmodule Traces do
     end)
   end
 
+@doc """
+  Save a graph to DOT format.
+"""
   def save_graph(graph) do
     {:ok, dot_data} = Graph.Serializers.DOT.serialize(graph)
-    case File.write("graph_dot.dot", dot_data) do
-      :ok -> {:ok, "Successfully saved to graph_dot file" }
+    case File.write("graph.dot", dot_data) do
+      :ok -> {:ok, "Successfully saved to graph.dot file" }
       {:error, reason} -> {:error, "Failed to save: #{reason}"}
     end
   end

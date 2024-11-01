@@ -1,17 +1,17 @@
 defmodule Parser do
   # Funkcja, która rozdziela wyrażenie na składniki
-  def parse_expression(expr) do
-    [left, right] = String.split(expr, " := ")
+  defp parse_expression(expr) do
+    [left, right] = String.split(expr, " := ", parts: 2)
     {left, right}
   end
 
   # Funkcja, która identyfikuje zmienne w prawej części wyrażenia
-  def identify_variables(right_side) do
+  defp identify_variables(right_side) do
     Regex.scan(~r/[a-z]/, right_side)
   end
 
   # Funkcja tworząca mapę `reads` i `writes` dla pojedynczego wyrażenia
-  def create_read_write_map({label, expr}) do
+  defp create_read_write_map({label, expr}) do
     {left, right} = parse_expression(expr)
     reads = identify_variables(right)
     writes = [left]
@@ -19,38 +19,43 @@ defmodule Parser do
   end
 
   # Funkcja przetwarzająca wszystkie wyrażenia na mapę
-  def parse_all(assignments) do
-    Enum.into(assignments, %{}, fn {label, expr} -> create_read_write_map({label, expr}) end)
+  def parse_expressions() do
+    parse_assignments() |>
+    Enum.into(%{}, fn {label, expr} -> create_read_write_map({label, expr}) end)
   end
 
   # Funkcja zamieniająca sekwencję `w` na listę liter
-  def parse_sequence(sequence) do
-    String.graphemes(sequence)  |> Enum.with_index(fn element,index -> element <> Integer.to_string(index) end ) |> Enum.map(fn e -> String.to_atom(e) end)
+  def parse_word() do
+    get_word() |> String.graphemes()  |> Enum.with_index(fn element,index -> element <> Integer.to_string(index) end ) |> Enum.map(fn e -> String.to_atom(e) end)
   end
 
-  def get_assignments() do
-    [
-      {:a, "x := x + y"},
-      {:b, "y := y + 2z"},
-      {:c, "x := 3x + z"},
-      {:d, "z := y - z"},
-    ]
+  defp parse_line(line) do
+    [left, right] = String.split(line, ") ", parts: 2)
+    { Regex.scan(~r'([a-z])', left, capture: :first)|> List.flatten() |> List.first() |> String.to_atom() , right}
   end
 
   def strip_index(element) do
     element |> Atom.to_string() |> String.first()
   end
+
+  defp parse_assignments() do
+    lines = get_assignments() |> String.split("\n")
+
+    for line <- lines do parse_line(line) end
+  end
+
+  defp get_assignments() do
+    "(a) x := x + 1
+    (b) y := y + 2z
+    (c) x := 3x + z
+    (d) w := w + v
+    (e) z := y - z
+    (f) v := x + v"
+  end
+
+  defp get_word() do
+    "baadcb"
+  end
+
+
 end
-
-# Przykład użycia
-
-# Lista wyrażeń
-
-# Wygenerowanie mapy `reads` i `writes`
-# parsed_map = Parser.parse_all(assignments)
-
-# Zamiana `w` na listę liter
-# sequence = Parser.parse_sequence("baadcb")
-
-# IO.inspect(parsed_map, label: "Parsed Map")
-# IO.inspect(sequence, label: "Sequence")
