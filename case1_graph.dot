@@ -1,0 +1,17 @@
+strict digraph {
+    1600[label="a0"]
+    1621[label="b5"]
+    1622[label="b6"]
+    1633[label="c1"]
+    1635[label="c3"]
+    1650[label="d2"]
+    1671[label="e7"]
+    1684[label="f4"]
+    1600 -> 1633 [weight=1]
+    1621 -> 1622 [weight=1]
+    1622 -> 1671 [weight=1]
+    1633 -> 1635 [weight=1]
+    1635 -> 1671 [weight=1]
+    1635 -> 1684 [weight=1]
+    1650 -> 1684 [weight=1]
+}
