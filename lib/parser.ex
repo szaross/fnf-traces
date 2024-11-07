@@ -1,5 +1,5 @@
 defmodule Parser do
-  defp get_assignments() do
+  defp get_expressions() do
     "(a) x := x + 1
 (b) y := y + 2z
 (c) x := 3x + z
@@ -58,7 +58,7 @@ defmodule Parser do
   end
 
   defp parse_assignments() do
-    lines = get_assignments() |> String.split("\n")
+    lines = get_expressions() |> String.split("\n")
 
     for line <- lines do
       parse_line(line)

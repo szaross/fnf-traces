@@ -1,6 +1,8 @@
 defmodule Traces do
   @moduledoc """
   A module containing FNF functionality.
+
+  This file is generated. To view it in better format than pdf go to doc/Traces.html
   ## Installation
   To run this you need to install Elixir: https://elixir-lang.org/install.html
   and mix. mix should be installed with Elixir, if not you need to fix it yourself.
@@ -20,7 +22,7 @@ defmodule Traces do
       iex(87)> g = Traces.build_graph(expressions, word)
       iex(88)> Traces.save_graph(g)
 
-  To change the input, please go to parser.ex and edit two upmost functions: get_assignments() and get_word() accordingly with proper syntax.
+  To change the input, please go to parser.ex and edit two upmost functions: get_expressions() and get_word() accordingly with proper syntax.
   When done, you can just use `recompile` method in iex and your changes will be updated in the shell.
 
   Case 1
