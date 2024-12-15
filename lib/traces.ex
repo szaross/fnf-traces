@@ -176,6 +176,7 @@ defmodule Traces do
     expressions
     |> build_d()
     |> build_graph_d(word)
+    # |> IO.inspect()
     |> get_foata_classes()
     |> Enum.map(&Enum.sort/1)
     |> Enum.uniq()
@@ -232,6 +233,7 @@ defmodule Traces do
         reachable = Graph.reachable(acc_graph, [action])
         # we need to strip vertices from indices to check if two actions are dependent
         action_atom = Parser.strip_index(action) |> String.to_atom()
+        action_atom |> IO.inspect()
         other_action_atom = Parser.strip_index(other_action) |> String.to_atom()
         # add an edge if it is not possible to reach other_action from action
         if not Enum.member?(reachable, other_action) and

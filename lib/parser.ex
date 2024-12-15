@@ -1,15 +1,16 @@
 defmodule Parser do
   defp get_expressions() do
-    "(a) x := x + 1
-(b) y := y + 2z
-(c) x := 3x + z
-(d) w := w + v
-(e) z := y - z
-(f) v := x + v"
+"(A1,2) A1,2 := M2,1 / M1,1
+(B1,1,2) B1,1,2 := M1,1 * A1,2
+(C1,1,2) C1,1,2 := M2,1 - B1,1,2
+(B1,2,2) B1,2,2 := M1,2 * A1,2
+(C1,2,2) C1,2,2 := M2,2 - B1,2,2
+(B1,3,2) B1,3,2 := M1,3 * A1,2
+(C1,3,2) C1,3,2 := M2,3 - B1,3,2"
   end
 
   defp get_word() do
-    "acdcfbbe"
+    "A1,2 B1,1,2 C1,1,2 B1,2,2 C1,2,2 B1,3,2 C1,3,2"
   end
 
   defp parse_expression(expr) do
@@ -19,7 +20,7 @@ defmodule Parser do
 
   # Funkcja, która identyfikuje zmienne w prawej części wyrażenia
   defp identify_variables(right_side) do
-    Regex.scan(~r/[a-z]/, right_side)
+    Regex.scan(~r/[\d\w,]+/, right_side)
   end
 
   # Funkcja tworząca mapę `reads` i `writes` dla pojedynczego wyrażenia
@@ -39,22 +40,22 @@ defmodule Parser do
   # Funkcja zamieniająca sekwencję `w` na listę liter
   def parse_word() do
     get_word()
-    |> String.graphemes()
-    |> Enum.with_index(fn element, index -> element <> Integer.to_string(index) end)
+    |> String.split(" ")
+    # |> String.graphemes()
+    # |> Enum.with_index(fn element, _index -> element end)
     |> Enum.map(fn e -> String.to_atom(e) end)
   end
 
   defp parse_line(line) do
     [left, right] = String.split(line, ") ", parts: 2)
-
-    {Regex.scan(~r'([a-z])', left, capture: :first)
+    {Regex.scan(~r'([^\(]+)', left, capture: :first)
      |> List.flatten()
      |> List.first()
      |> String.to_atom(), right}
   end
 
   def strip_index(element) do
-    element |> Atom.to_string() |> String.first()
+    element |> Atom.to_string()
   end
 
   defp parse_assignments() do
@@ -63,5 +64,14 @@ defmodule Parser do
     for line <- lines do
       parse_line(line)
     end
+  end
+
+
+  def xd() do
+    IO.puts(1 |> xdd)
+  end
+
+  def xdd(x) do
+    x+2
   end
 end
